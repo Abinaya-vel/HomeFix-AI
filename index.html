@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>HomeFix AI — Smart Product Troubleshooting</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+            font-family: Inter, Arial, sans-serif;
+            background: #f5f7fb;
+            color: #18212f;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        /* =========================
+           APP LAYOUT
+        ========================= */
+
+        .app {
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* =========================
+           SIDEBAR
+        ========================= */
+
+        .sidebar {
+            width: 310px;
+            height: 100vh;
+            flex-shrink: 0;
+            background: #101827;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            margin-bottom: 30px;
+        }
+
+        .brand-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #6d5dfc, #8b7cff);
+            font-size: 23px;
+            box-shadow: 0 10px 25px rgba(109, 93, 252, 0.25);
+        }
+
+        .brand h1 {
+            font-size: 20px;
+            font-weight: 750;
+            letter-spacing: -0.4px;
+        }
+
+        .brand p {
+            margin-top: 3px;
+            color: #8e9bad;
+            font-size: 12px;
+        }
+
+        .section-title {
+            color: #7f8ba0;
+            text-transform: uppercase;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            margin-bottom: 12px;
+        }
+
+        /* =========================
+           UPLOAD
+        ========================= */
+
+        .upload-box {
+            border: 1px dashed #3b475b;
+            border-radius: 17px;
+            padding: 22px 16px;
+            text-align: center;
+            background: #151f30;
+            transition: 0.25s ease;
+        }
+
+        .upload-box:hover {
+            border-color: #7467ff;
+            background: #182338;
+        }
+
+        .upload-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 12px;
+            border-radius: 14px;
+            background: #202c41;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .upload-box h3 {
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .upload-box p {
+            color: #8d99aa;
+            font-size: 12px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .upload-button {
+            width: 100%;
+            border: none;
+            border-radius: 11px;
+            padding: 11px;
+            background: #6d5dfc;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .upload-button:hover {
+            background: #5d4dec;
+            transform: translateY(-1px);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* =========================
+           DOCUMENT LIST
+        ========================= */
+
+        .documents-section {
+            margin-top: 28px;
+        }
+
+        .document-list {
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+
+        .document-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 12px;
+            background: #151f30;
+            border: 1px solid #202c3d;
+        }
+
+        .pdf-icon {
+            width: 34px;
+            height: 34px;
+            flex-shrink: 0;
+            border-radius: 9px;
+            background: #292f45;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .document-name {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .document-name strong {
+            display: block;
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .document-name span {
+            display: block;
+            margin-top: 3px;
+            color: #78869a;
+            font-size: 10px;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #52d99b;
+            flex-shrink: 0;
+        }
+
+        .empty-docs {
+            color: #718096;
+            font-size: 12px;
+            line-height: 1.5;
+            text-align: center;
+            padding: 12px 5px;
+        }
+
+        /* =========================
+           SIDEBAR FOOTER
+        ========================= */
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 25px;
+        }
+
+        .secure-card {
+            padding: 14px;
+            border-radius: 14px;
+            background: #151f30;
+            border: 1px solid #202c3d;
+        }
+
+        .secure-card strong {
+            font-size: 12px;
+        }
+
+        .secure-card p {
+            margin-top: 5px;
+            color: #7d899b;
+            font-size: 10px;
+            line-height: 1.5;
+        }
+
+        /* =========================
+           MAIN
+        ========================= */
+
+        .main {
+            min-width: 0;
+            min-height: 0;
+            flex: 1;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* =========================
+           TOP BAR
+        ========================= */
+
+        .topbar {
+            height: 76px;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.94);
+            border-bottom: 1px solid #e6e9ef;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+        }
+
+        .top-title h2 {
+            font-size: 18px;
+            font-weight: 750;
+            letter-spacing: -0.4px;
+        }
+
+        .top-title p {
+            color: #7a8494;
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        .ai-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 20px;
+            background: #f1f0ff;
+            color: #5b4bdc;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .ai-status-dot {
+            width: 7px;
+            height: 7px;
+            background: #6d5dfc;
+            border-radius: 50%;
+        }
+
+        /* =========================
+           CHAT AREA
+        ========================= */
+
+        #chat {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 34px 30px;
+            scroll-behavior: smooth;
+        }
+
+        #chat::-webkit-scrollbar {
+            width: 9px;
+        }
+
+        #chat::-webkit-scrollbar-track {
+            background: #eef0f5;
+        }
+
+        #chat::-webkit-scrollbar-thumb {
+            background: #c2c7d2;
+            border-radius: 10px;
+        }
+
+        #chat::-webkit-scrollbar-thumb:hover {
+            background: #a9afbc;
+        }
+
+        /* =========================
+           WELCOME
+        ========================= */
+
+        .welcome {
+            max-width: 900px;
+            margin: 25px auto 40px;
+            text-align: center;
+        }
+
+        .welcome-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 12px;
+            border-radius: 20px;
+            background: #eeecff;
+            color: #5c4bdd;
+            font-size: 11px;
+            font-weight: 750;
+            margin-bottom: 17px;
+        }
+
+        .welcome h2 {
+            font-size: clamp(28px, 4vw, 44px);
+            line-height: 1.08;
+            letter-spacing: -1.8px;
+            color: #172033;
+        }
+
+        .welcome h2 span {
+            color: #6d5dfc;
+        }
+
+        .welcome p {
+            max-width: 650px;
+            margin: 14px auto 0;
+            color: #727d8e;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        /* =========================
+           EXAMPLE CARDS
+        ========================= */
+
+        .examples {
+            max-width: 900px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 13px;
+        }
+
+        .example-card {
+            text-align: left;
+            padding: 17px;
+            border: 1px solid #e1e5ec;
+            background: white;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .example-card:hover {
+            border-color: #b9b2ff;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(28, 38, 60, 0.07);
+        }
+
+        .example-card .emoji {
+            font-size: 21px;
+            margin-bottom: 11px;
+        }
+
+        .example-card strong {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .example-card p {
+            color: #7d8796;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        /* =========================
+           MESSAGES
+        ========================= */
+
+        .message-row {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto 20px;
+            display: flex;
+            gap: 11px;
+        }
+
+        .message-row.user {
+            justify-content: flex-end;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .bot-avatar {
+            background: #eeecff;
+            color: #6251e2;
+        }
+
+        .user-avatar {
+            background: #172033;
+            color: white;
+            order: 2;
+        }
+
+        .message-content {
+            max-width: min(760px, 78%);
+        }
+
+        .message-name {
+            color: #737e8e;
+            font-size: 10px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .user .message-name {
+            text-align: right;
+        }
+
+        .bubble {
+            padding: 14px 17px;
+            border-radius: 16px;
+            background: white;
+            border: 1px solid #e2e6ed;
+            color: #303a4a;
+            font-size: 13px;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-break: break-word;
+            box-shadow: 0 4px 15px rgba(30, 42, 65, 0.035);
+        }
+
+        .user .bubble {
+            background: #6d5dfc;
+            border-color: #6d5dfc;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .bot .bubble {
+            border-bottom-left-radius: 5px;
+        }
+
+        /* =========================
+           SOURCES
+        ========================= */
+
+        .sources {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .sources-title {
+            color: #7b8595;
+            font-size: 10px;
+            font-weight: 750;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .source-card {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 9px 11px;
+            background: #f8f9fc;
+            border: 1px solid #e5e8ee;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            transition: 0.2s ease;
+        }
+
+        .source-card:hover {
+            background: #f0efff;
+            border-color: #c9c3ff;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(28, 38, 60, 0.06);
+        }
+
+        .source-file-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+            background: #ecebff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+        }
+
+        .source-info {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .source-info strong {
+            display: block;
+            font-size: 11px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .source-info span {
+            display: block;
+            color: #858e9c;
+            font-size: 9px;
+            margin-top: 2px;
+        }
+
+        /* =========================
+           LOADING
+        ========================= */
+
+        .typing {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 0;
+        }
+
+        .typing span {
+            width: 6px;
+            height: 6px;
+            background: #8580c8;
+            border-radius: 50%;
+            animation: bounce 1.2s infinite;
+        }
+
+        .typing span:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+
+        .typing span:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        @keyframes bounce {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+
+            30% {
+                transform: translateY(-5px);
+            }
+        }
+
+        /* =========================
+           INPUT AREA
+        ========================= */
+
+        .input-area {
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.96);
+            border-top: 1px solid #e5e8ee;
+            padding: 15px 30px 18px;
+        }
+
+        .input-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            padding: 9px 9px 9px 16px;
+            border: 1px solid #dce1e9;
+            border-radius: 16px;
+            background: white;
+            box-shadow: 0 8px 30px rgba(28, 39, 62, 0.06);
+        }
+
+        #questionInput {
+            flex: 1;
+            min-width: 0;
+            border: none;
+            outline: none;
+            resize: none;
+            max-height: 120px;
+            min-height: 23px;
+            background: transparent;
+            color: #202a39;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        #questionInput::placeholder {
+            color: #9aa2af;
+        }
+
+        .send-button {
+            width: 39px;
+            height: 39px;
+            flex-shrink: 0;
+            border: none;
+            border-radius: 11px;
+            background: #6d5dfc;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: 0.2s;
+        }
+
+        .send-button:hover {
+            background: #5b4bdc;
+            transform: translateY(-1px);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .input-hint {
+            max-width: 900px;
+            margin: 7px auto 0;
+            text-align: center;
+            color: #a0a7b2;
+            font-size: 9px;
+        }
+
+        /* =========================
+           TOAST
+        ========================= */
+
+        .toast {
+            position: fixed;
+            right: 24px;
+            bottom: 90px;
+            z-index: 100;
+            max-width: 330px;
+            padding: 13px 16px;
+            border-radius: 12px;
+            background: #172033;
+            color: white;
+            font-size: 12px;
+            line-height: 1.5;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.18);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px);
+            transition: 0.25s;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 900px) {
+            .sidebar {
+                width: 250px;
+                padding: 18px;
+            }
+
+            .topbar {
+                padding: 0 20px;
+            }
+
+            #chat {
+                padding: 25px 20px;
+            }
+
+            .input-area {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+
+            .examples {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .sidebar {
+                display: none;
+            }
+
+            .topbar {
+                height: 68px;
+            }
+
+            .top-title h2 {
+                font-size: 16px;
+            }
+
+            .ai-status {
+                font-size: 10px;
+            }
+
+            #chat {
+                padding: 22px 15px;
+            }
+
+            .input-area {
+                padding: 11px 12px 14px;
+            }
+
+            .message-content {
+                max-width: 84%;
+            }
+
+            .welcome {
+                margin-top: 10px;
+            }
+
+            .welcome h2 {
+                font-size: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <div class="brand-icon">🔧</div>
+
+            <div>
+                <h1>HomeFix AI</h1>
+                <p>Smart Product Assistant</p>
+            </div>
+        </div>
+
+        <div class="section-title">
+            Knowledge Base
+        </div>
+
+        <div class="upload-box">
+
+            <div class="upload-icon">
+                📄
+            </div>
+
+            <h3>Upload Product PDFs</h3>
+
+            <p>
+                Add manuals, warranty documents,
+                installation guides and other product documents.
+            </p>
+
+            <button
+                class="upload-button"
+                onclick="document.getElementById('fileInput').click()"
+            >
+                + Add PDF Documents
+            </button>
+
+            <input
+                id="fileInput"
+                type="file"
+                accept=".pdf"
+                multiple
+                onchange="uploadDocuments()"
+            >
+
+        </div>
+
+        <div class="documents-section">
+
+            <div class="section-title">
+                Uploaded Documents
+            </div>
+
+            <div id="documentList" class="document-list">
+
+                <div class="empty-docs">
+                    No documents uploaded yet.
+                    <br>
+                    Add PDFs to build your knowledge base.
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="sidebar-footer">
+
+            <div class="secure-card">
+                <strong>🛡️ Document-Grounded AI</strong>
+
+                <p>
+                    HomeFix AI answers using information
+                    retrieved from your uploaded documents.
+                </p>
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =========================
+         MAIN
+    ========================== -->
+
+    <main class="main">
+
+        <!-- TOP BAR -->
+
+        <header class="topbar">
+
+            <div class="top-title">
+                <h2>Product Troubleshooting</h2>
+                <p>Ask questions about your uploaded documents</p>
+            </div>
+
+            <div class="ai-status">
+                <span class="ai-status-dot"></span>
+                RAG AI Online
+            </div>
+
+        </header>
+
+
+        <!-- CHAT -->
+
+        <section id="chat">
+
+            <div id="welcome" class="welcome">
+
+                <div class="welcome-badge">
+                    ✨ Document-powered assistance
+                </div>
+
+                <h2>
+                    Fix it smarter with
+                    <span>HomeFix AI</span>
+                </h2>
+
+                <p>
+                    Upload your product manuals, warranty documents,
+                    and installation guides. Then ask questions and
+                    get answers grounded in your own documents.
+                </p>
+
+            </div>
+
+
+            <div id="examples" class="examples">
+
+                <div
+                    class="example-card"
+                    onclick="useExample('Why is my washing machine showing E5?')"
+                >
+                    <div class="emoji">⚠️</div>
+
+                    <strong>Error troubleshooting</strong>
+
+                    <p>
+                        Why is my washing machine showing E5?
+                    </p>
+                </div>
+
+
+                <div
+                    class="example-card"
+                    onclick="useExample('How do I clean the drain filter?')"
+                >
+                    <div class="emoji">🧼</div>
+
+                    <strong>Maintenance help</strong>
+
+                    <p>
+                        How do I clean the drain filter?
+                    </p>
+                </div>
+
+
+                <div
+                    class="example-card"
+                    onclick="useExample('Is the motor covered under warranty?')"
+                >
+                    <div class="emoji">📋</div>
+
+                    <strong>Warranty information</strong>
+
+                    <p>
+                        Is the motor covered under warranty?
+                    </p>
+                </div>
+
+            </div>
+
+            <div id="messages"></div>
+
+        </section>
+
+
+        <!-- INPUT -->
+
+        <footer class="input-area">
+
+            <div class="input-wrapper">
+
+                <textarea
+                    id="questionInput"
+                    rows="1"
+                    placeholder="Ask about your product documents..."
+                    onkeydown="handleKeyDown(event)"
+                ></textarea>
+
+                <button
+                    id="sendButton"
+                    class="send-button"
+                    onclick="sendQuestion()"
+                    title="Send"
+                >
+                    ➤
+                </button>
+
+            </div>
+
+            <div class="input-hint">
+                HomeFix AI uses your uploaded documents as its knowledge source.
+            </div>
+
+        </footer>
+
+    </main>
+
+</div>
+
+
+<!-- TOAST -->
+
+<div id="toast" class="toast"></div>
+
+
+<script>
+
+    /* =========================
+       ELEMENTS
+    ========================== */
+
+    const fileInput = document.getElementById("fileInput");
+    const documentList = document.getElementById("documentList");
+
+    const chat = document.getElementById("chat");
+    const messages = document.getElementById("messages");
+
+    const welcome = document.getElementById("welcome");
+    const examples = document.getElementById("examples");
+
+    const questionInput = document.getElementById("questionInput");
+    const sendButton = document.getElementById("sendButton");
+
+    const toast = document.getElementById("toast");
+
+
+    /* =========================
+       DOCUMENT UPLOAD
+    ========================== */
+
+    async function uploadDocuments() {
+
+        const files = fileInput.files;
+
+        if (!files.length) {
+            return;
+        }
+
+        const formData = new FormData();
+
+        for (const file of files) {
+
+            if (!file.name.toLowerCase().endsWith(".pdf")) {
+
+                showToast(
+                    `${file.name} is not a PDF file.`
+                );
+
+                continue;
+            }
+
+            formData.append("files", file);
+        }
+
+        showToast("Uploading and indexing documents...");
+
+        try {
+
+            const response = await fetch(
+                "/api/upload",
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+
+                showToast(
+                    data.message || "Upload failed."
+                );
+
+                return;
+            }
+
+            addUploadedDocuments(data.files);
+
+            showToast(
+                data.message ||
+                "Documents uploaded successfully."
+            );
+
+        } catch (error) {
+
+            console.error(error);
+
+            showToast(
+                "Unable to upload documents. Please try again."
+            );
+
+        } finally {
+
+            fileInput.value = "";
+
+        }
+    }
+
+
+    /* =========================
+       ADD DOCUMENTS TO SIDEBAR
+    ========================== */
+
+    function addUploadedDocuments(files) {
+
+        const emptyMessage =
+            document.querySelector(".empty-docs");
+
+        if (emptyMessage) {
+            emptyMessage.remove();
+        }
+
+        files.forEach(file => {
+
+            const item = document.createElement("div");
+
+            item.className = "document-item";
+
+            const documentUrl =
+                file.url ||
+                `/documents/${encodeURIComponent(file.filename)}`;
+
+            item.style.cursor = "pointer";
+            item.title = "Open PDF";
+
+            item.addEventListener("click", () => {
+                window.open(documentUrl, "_blank");
+            });
+
+            item.innerHTML = `
+                <div class="pdf-icon">📄</div>
+
+                <div class="document-name">
+                    <strong title="${escapeHtml(file.filename)}">
+                        ${escapeHtml(file.filename)}
+                    </strong>
+
+                    <span>
+                        Indexed • Ready • Click to open
+                    </span>
+                </div>
+
+                <div class="status-dot"></div>
+            `;
+
+            documentList.appendChild(item);
+
+        });
+    }
+
+
+    /* =========================
+       EXAMPLE QUESTION
+    ========================== */
+
+    function useExample(question) {
+
+        questionInput.value = question;
+
+        autoResize();
+
+        questionInput.focus();
+
+    }
+
+
+    /* =========================
+       SEND QUESTION
+    ========================== */
+
+    async function sendQuestion() {
+
+        const question =
+            questionInput.value.trim();
+
+        if (!question) {
+            return;
+        }
+
+        addUserMessage(question);
+
+        questionInput.value = "";
+
+        resetTextarea();
+
+        hideWelcome();
+
+        showTyping();
+
+        sendButton.disabled = true;
+
+        try {
+
+            const response = await fetch(
+                "/api/chat",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        question: question
+                    })
+                }
+            );
+
+            const data = await response.json();
+
+            removeTyping();
+
+            if (!response.ok || !data.success) {
+
+                addBotMessage(
+                    data.message ||
+                    "Something went wrong while processing your question."
+                );
+
+                return;
+            }
+
+            addBotMessage(
+                data.answer,
+                data.sources || []
+            );
+
+        } catch (error) {
+
+            console.error(error);
+
+            removeTyping();
+
+            addBotMessage(
+                "I couldn't connect to HomeFix AI. Please check that the Flask server is running."
+            );
+
+        } finally {
+
+            sendButton.disabled = false;
+
+            questionInput.focus();
+
+        }
+    }
+
+
+    /* =========================
+       USER MESSAGE
+    ========================== */
+
+    function addUserMessage(text) {
+
+        const row =
+            document.createElement("div");
+
+        row.className =
+            "message-row user";
+
+        row.innerHTML = `
+
+            <div class="avatar user-avatar">
+                U
+            </div>
+
+            <div class="message-content">
+
+                <div class="message-name">
+                    You
+                </div>
+
+                <div class="bubble">
+                    ${escapeHtml(text)}
+                </div>
+
+            </div>
+        `;
+
+        messages.appendChild(row);
+
+        scrollToBottom();
+    }
+
+
+    /* =========================
+       BOT MESSAGE
+    ========================== */
+
+    function addBotMessage(
+        text,
+        sources = []
+    ) {
+
+        const row =
+            document.createElement("div");
+
+        row.className =
+            "message-row bot";
+
+        let sourceHTML = "";
+
+        if (sources.length > 0) {
+
+            sourceHTML = `
+                <div class="sources">
+
+                    <div class="sources-title">
+                        Sources
+                    </div>
+
+                    ${sources.map(source => {
+                        const filename =
+                            source.filename ||
+                            source.source ||
+                            "Document.pdf";
+
+                        const page =
+                            Number(source.page) || 1;
+
+                        const pdfUrl =
+                            source.url ||
+                            `/documents/${encodeURIComponent(filename)}#page=${page}`;
+
+                        return `
+                            <a
+                                class="source-card"
+                                href="${escapeHtml(pdfUrl)}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title="Open ${escapeHtml(filename)} — Page ${page}"
+                            >
+                                <div class="source-file-icon">
+                                    📄
+                                </div>
+
+                                <div class="source-info">
+                                    <strong>
+                                        ${escapeHtml(filename)}
+                                    </strong>
+
+                                    <span>
+                                        Page ${escapeHtml(String(page))} • Click to open
+                                    </span>
+                                </div>
+                            </a>
+                        `;
+                    }).join("")}
+
+                </div>
+            `;
+        }
+
+        row.innerHTML = `
+
+            <div class="avatar bot-avatar">
+                ✦
+            </div>
+
+            <div class="message-content">
+
+                <div class="message-name">
+                    HomeFix AI
+                </div>
+
+                <div class="bubble">
+                    ${formatAnswer(text)}
+                </div>
+
+                ${sourceHTML}
+
+            </div>
+        `;
+
+        messages.appendChild(row);
+
+        scrollToBottom();
+    }
+
+
+    /* =========================
+       TYPING INDICATOR
+    ========================== */
+
+    function showTyping() {
+
+        const row =
+            document.createElement("div");
+
+        row.id = "typingIndicator";
+
+        row.className =
+            "message-row bot";
+
+        row.innerHTML = `
+
+            <div class="avatar bot-avatar">
+                ✦
+            </div>
+
+            <div class="message-content">
+
+                <div class="message-name">
+                    HomeFix AI
+                </div>
+
+                <div class="bubble">
+
+                    <div class="typing">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+
+                </div>
+
+            </div>
+        `;
+
+        messages.appendChild(row);
+
+        scrollToBottom();
+    }
+
+
+    function removeTyping() {
+
+        const indicator =
+            document.getElementById(
+                "typingIndicator"
+            );
+
+        if (indicator) {
+            indicator.remove();
+        }
+    }
+
+
+    /* =========================
+       HIDE WELCOME
+    ========================== */
+
+    function hideWelcome() {
+
+        if (welcome) {
+            welcome.style.display = "none";
+        }
+
+        if (examples) {
+            examples.style.display = "none";
+        }
+    }
+
+
+    /* =========================
+       SCROLL
+    ========================== */
+
+    function scrollToBottom() {
+
+        requestAnimationFrame(() => {
+
+            chat.scrollTop =
+                chat.scrollHeight;
+
+        });
+    }
+
+
+    /* =========================
+       ENTER KEY
+    ========================== */
+
+    function handleKeyDown(event) {
+
+        if (
+            event.key === "Enter" &&
+            !event.shiftKey
+        ) {
+
+            event.preventDefault();
+
+            sendQuestion();
+
+        }
+    }
+
+
+    /* =========================
+       TEXTAREA AUTO RESIZE
+    ========================== */
+
+    questionInput.addEventListener(
+        "input",
+        autoResize
+    );
+
+
+    function autoResize() {
+
+        questionInput.style.height =
+            "auto";
+
+        questionInput.style.height =
+            Math.min(
+                questionInput.scrollHeight,
+                120
+            ) + "px";
+    }
+
+
+    function resetTextarea() {
+
+        questionInput.style.height =
+            "23px";
+    }
+
+
+    /* =========================
+       ANSWER FORMATTER
+    ========================== */
+
+    function formatAnswer(text) {
+
+        if (!text) {
+            return "";
+        }
+
+        let formatted =
+            escapeHtml(text);
+
+        /*
+         * Convert simple markdown-style
+         * formatting into readable HTML.
+         */
+
+        formatted =
+            formatted.replace(
+                /\*\*(.*?)\*\*/g,
+                "<strong>$1</strong>"
+            );
+
+        formatted =
+            formatted.replace(
+                /^### (.*)$/gm,
+                "<strong>$1</strong>"
+            );
+
+        formatted =
+            formatted.replace(
+                /^## (.*)$/gm,
+                "<strong>$1</strong>"
+            );
+
+        formatted =
+            formatted.replace(
+                /^# (.*)$/gm,
+                "<strong>$1</strong>"
+            );
+
+        formatted =
+            formatted.replace(
+                /\n/g,
+                "<br>"
+            );
+
+        return formatted;
+    }
+
+
+    /* =========================
+       HTML ESCAPE
+    ========================== */
+
+    function escapeHtml(value) {
+
+        const div =
+            document.createElement("div");
+
+        div.textContent =
+            value;
+
+        return div.innerHTML;
+    }
+
+
+    /* =========================
+       TOAST
+    ========================== */
+
+    let toastTimer;
+
+    function showToast(message) {
+
+        toast.textContent =
+            message;
+
+        toast.classList.add("show");
+
+        clearTimeout(toastTimer);
+
+        toastTimer =
+            setTimeout(() => {
+
+                toast.classList.remove(
+                    "show"
+                );
+
+            }, 3500);
+    }
+
+
+    /* =========================
+       INITIAL STATE
+    ========================== */
+
+    questionInput.focus();
+
+</script>
+
+</body>
+</html>
